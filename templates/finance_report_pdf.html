@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Finance Summary Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            padding: 40px;
+            color: #000;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .date-range {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .timestamp-box {
+            float: right;
+            font-size: 13px;
+            border: 1px solid #000;
+            padding: 6px 10px;
+        }
+
+        .clear { clear: both; }
+
+        /* Summary block */
+        .summary-section {
+            border: 2px solid #000;
+            padding: 15px 20px;
+            margin: 20px 0 30px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 15px;
+        }
+
+        .summary-label { font-weight: 600; }
+        .summary-value { font-weight: 600; }
+
+        /* Section titles */
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 30px 0 10px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+        }
+
+        /* Breakdown list */
+        .breakdown-list {
+            margin-top: 8px;
+            margin-bottom: 10px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+
+        .breakdown-label { font-weight: normal; }
+        .breakdown-value { font-weight: bold; }
+
+        /* Detail tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            margin-bottom: 20px;
+            table-layout: fixed; /* important for consistent alignment */
+        }
+
+        th, td {
+            padding: 6px 5px;
+            border-bottom: 1px solid #ddd;
+            font-size: 13px;
+            word-wrap: break-word;
+        }
+
+        th {
+            background: #f5f5f5;
+            text-align: left;
+        }
+
+        /* Fixed-width helper classes for columns */
+        .col-date {
+            width: 110px;
+        }
+
+        .col-amount {
+            width: 130px;
+        }
+
+        .col-category {
+            width: 160px;
+        }
+
+        .col-notes {
+            width: 260px;
+        }
+
+        .col-modality {
+            width: 130px;
+        }
+
+        /* Right-align numeric cells and use tabular numbers */
+        .text-right,
+        td.amount-cell {
+            text-align: right !important;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+
+        /* Print Button */
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .print-btn:hover { background: #000; }
+
+        @media print {
+            body { padding: 20px; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="timestamp-box">
+            {{ timestamp.strftime("%d/%m/%Y %I:%M:%S %p") }}
+        </div>
+        <div class="clear"></div>
+
+        <h1>Finance Summary Report</h1>
+        <h2>Asia Doctor's Point Finance</h2>
+
+        <div class="date-range">
+            Period:
+            {{ start_date.strftime("%d/%m/%Y") }}
+            &mdash;
+            {{ end_date.strftime("%d/%m/%Y") }}
+        </div>
+
+        <div class="date-range">
+            Report type:
+            {% if report_type == 'all' %}
+                All (collections, expenses, doctor bills)
+            {% elif report_type == 'collection' %}
+                Collections only
+            {% elif report_type == 'expenses' %}
+                Expenses only
+            {% elif report_type == 'doctor_bills' %}
+                Doctor bills only
+            {% else %}
+                Custom
+            {% endif %}
+        </div>
+
+        {% if expense_category %}
+            <div class="date-range">
+                Expense category:
+                <strong>{{ expense_category }}</strong>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-section">
+        {% if include_collection %}
+        <div class="summary-row">
+            <span class="summary-label">Total Collection (with Lab):</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(total_collection or 0) }} BDT
+            </span>
+        </div>
+        {% endif %}
+
+        {% if include_collection and total_lab %}
+        <div class="summary-row">
+            <span class="summary-label">Total Lab Collection:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(total_lab or 0) }} BDT
+            </span>
+        </div>
+        {% endif %}
+
+        {% if include_expenses %}
+        <div class="summary-row">
+            <span class="summary-label">
+                Total Expenses{% if expense_category %} ({{ expense_category }}){% endif %}:
+            </span>
+            <span class="summary-value">
+                {{ "%.2f"|format(total_expenses or 0) }} BDT
+            </span>
+        </div>
+        {% endif %}
+
+        {% if include_doctor_bills %}
+        <div class="summary-row">
+            <span class="summary-label">Total Doctor Bills:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(total_doctor_bills or 0) }} BDT
+            </span>
+        </div>
+        {% endif %}
+
+        {% if net_cash is not none %}
+        <div class="summary-row">
+            <span class="summary-label">
+                Net Cash (Collection - Expenses - Doctor Bills):
+            </span>
+            <span class="summary-value">
+                {{ "%.2f"|format(net_cash or 0) }} BDT
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Collection Section -->
+    {% if include_collection %}
+    <div class="section">
+        <div class="section-title">Collections (Day-wise)</div>
+
+        <table>
+            <thead>
+            <tr>
+                <th class="col-date">Date</th>
+                <th class="col-amount text-right">Total Collection (BDT)</th>
+                <th class="col-amount text-right">Lab (BDT)</th>
+                <th class="col-notes">Notes</th>
+                <th>By</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if days %}
+                {% for d in days %}
+                {% set lab = lab_by_date.get(d.date) %}
+                <tr>
+                    <td class="col-date">{{ d.date.strftime("%d/%m/%Y") }}</td>
+                    <td class="col-amount amount-cell">
+                        {{ "%.2f"|format(d.total_collection or 0) }}
+                    </td>
+                    <td class="col-amount amount-cell">
+                        {{ "%.2f"|format(lab.amount) if lab else "0.00" }}
+                    </td>
+                    <td class="col-notes">{{ d.notes }}</td>
+                    <td>{{ d.created_by.username if d.created_by else '—' }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:10px;">
+                        No collection records in this period.
+                    </td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Expense Section -->
+    {% if include_expenses %}
+    <div class="section">
+        <div class="section-title">
+            Expenses{% if expense_category %} — {{ expense_category }}{% endif %}
+        </div>
+
+        <!-- Breakdown by category (also works when single category is selected) -->
+        <div class="breakdown-list">
+            {% if expense_breakdown %}
+                {% for cat, total in expense_breakdown %}
+                <div class="breakdown-item">
+                    <span class="breakdown-label">
+                        {{ cat if cat else "Uncategorized" }}
+                    </span>
+                    <span class="breakdown-value">
+                        {{ "%.2f"|format(total or 0) }} BDT
+                    </span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="font-size: 13px; margin-bottom: 8px;">
+                    No expenses in this period.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Detailed expenses -->
+        <table>
+            <thead>
+            <tr>
+                <th class="col-date">Date</th>
+                <th class="col-category">Category</th>
+                <th class="col-notes">Description</th>
+                <th class="col-amount text-right">Amount (BDT)</th>
+                <th>By</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if expenses_list %}
+                {% for e in expenses_list %}
+                <tr>
+                    <td class="col-date">{{ e.date.strftime("%d/%m/%Y") }}</td>
+                    <td class="col-category">{{ e.category }}</td>
+                    <td class="col-notes">{{ e.description }}</td>
+                    <td class="col-amount amount-cell">
+                        {{ "%.2f"|format(e.amount or 0) }}
+                    </td>
+                    <td>{{ e.created_by.username if e.created_by else '—' }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:10px;">
+                        No expenses in this period.
+                    </td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Doctor Bills Section -->
+    <!-- {% if include_doctor_bills %}
+    <div class="section">
+        <div class="section-title">Doctor Bills</div> -->
+
+        <!-- Breakdown by doctor + modality -->
+        <!-- <div class="breakdown-list">
+            {% if doctor_breakdown %}
+                {% for dname, modality, total in doctor_breakdown %}
+                <div class="breakdown-item">
+                    <span class="breakdown-label">
+                        {{ dname or "Unknown doctor" }} ({{ modality or "N/A" }})
+                    </span>
+                    <span class="breakdown-value">
+                        {{ "%.2f"|format(total or 0) }} BDT
+                    </span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="font-size: 13px; margin-bottom: 8px;">
+                    No doctor bills in this period.
+                </div>
+            {% endif %}
+        </div> -->
+
+        <!-- Detailed doctor bills (commented out as requested) -->
+
+        {# 
+        <table>
+            <thead>
+            <tr>
+                <th class="col-date">Date</th>
+                <th class="col-category">Doctor</th>
+                <th class="col-modality">Modality</th>
+                <th class="col-amount text-right">Amount (BDT)</th>
+                <th class="col-date">Added At</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if doctor_bills_list %}
+                {% for b in doctor_bills_list %}
+                <tr>
+                    <td class="col-date">{{ b.date.strftime("%d/%m/%Y") }}</td>
+                    <td class="col-category">{{ b.doctor_name }}</td>
+                    <td class="col-modality">{{ b.modality }}</td>
+                    <td class="col-amount amount-cell">
+                        {{ "%.2f"|format(b.amount or 0) }}
+                    </td>
+                    <td class="col-date">
+                        {% if b.created_at %}
+                            {{ b.created_at.strftime("%Y-%m-%d %H:%M:%S") }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:10px;">
+                        No doctor bills in this period.
+                    </td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+        #}
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Generated by Clinic Finance App</p>
+        <p>Report generated on {{ timestamp.strftime("%d/%m/%Y") }}</p>
+    </div>
+
+</div>
+</body>
+</html>

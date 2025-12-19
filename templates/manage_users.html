@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block page_title %}Manage Users{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted mb-0">
+    Create and remove admin or staff accounts. Use this page to manage who can access the finance panel.
+</p>
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .mu-wrapper {
+        max-width: 100%;
+    }
+    .mu-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        padding: 16px 18px 12px;
+        margin-bottom: 16px;
+    }
+    .mu-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 3px;
+    }
+    .mu-input, .mu-select {
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        padding: 7px 10px;
+        font-size: 14px;
+        transition: all .15s ease;
+    }
+    .mu-input:focus, .mu-select:focus {
+        background: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        outline: none;
+    }
+    .mu-btn-primary {
+        border-radius: 999px;
+        padding: 7px 18px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        background: linear-gradient(90deg,#2563eb,#3b82f6);
+        color: #f9fafb;
+        box-shadow: 0 10px 24px rgba(37,99,235,0.35);
+        transition: all .12s ease;
+    }
+    .mu-btn-primary:hover {
+        filter: brightness(1.03);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(37,99,235,0.45);
+    }
+    .mu-btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 18px rgba(37,99,235,0.35);
+    }
+</style>
+
+<div class="mu-wrapper">
+
+    <!-- Create user -->
+    <div class="mu-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <div class="fw-semibold">Create New User</div>
+                <div class="text-muted small">
+                    Choose whether the user is an <strong>admin</strong> or <strong>staff</strong> (employee).
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="row g-2" autocomplete="off">
+            <input type="hidden" name="form_type" value="add_user">
+
+            <div class="col-md-4">
+                <label class="mu-label">Username</label>
+                <input type="text" name="username" class="form-control mu-input"
+                       placeholder="e.g. rafi, billing1" required>
+            </div>
+            <div class="col-md-4">
+                <label class="mu-label">Password</label>
+                <input type="password" name="password" class="form-control mu-input"
+                       placeholder="Set initial password" required>
+            </div>
+            <div class="col-md-3">
+                <label class="mu-label">Role</label>
+                <select name="role" class="form-select mu-select">
+                    <option value="employee">Staff</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="mu-btn-primary w-100">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- User table -->
+    <div class="mu-card">
+        <div class="mb-2">
+            <div class="fw-semibold">Existing Users</div>
+            <div class="text-muted small">
+                You cannot delete yourself or the primary <code>admin</code> account from here.
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Notes</th>
+                    <th class="text-end">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if users %}
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>
+                            {% if u.role == 'admin' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">
+                                    Admin
+                                </span>
+                            {% else %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">
+                                    Staff
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.id == g.user.id %}
+                                Currently logged in
+                            {% elif u.username == 'admin' %}
+                                Primary admin
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if u.id == g.user.id or u.username == 'admin' %}
+                                <span class="text-muted small">Protected</span>
+                            {% else %}
+                                <form method="post"
+                                      action="{{ url_for('delete_user', user_id=u.id) }}"
+                                      onsubmit="return confirm('Delete user {{ u.username }}?');"
+                                      class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Remove
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">
+                            No users found.
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

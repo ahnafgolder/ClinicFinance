@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supplier Report - {{ supplier.name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #ffffff;
+            color: #1f2937;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .report-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header */
+        .report-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+
+        .company-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .company-subtitle {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .report-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4f46e5;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 12px;
+        }
+
+        /* Supplier Info */
+        .supplier-info-box {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .supplier-name-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .supplier-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .supplier-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .supplier-details {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .date-range-box {
+            text-align: right;
+        }
+
+        .date-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9ca3af;
+        }
+
+        .date-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .summary-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .summary-value.opening { color: #6b7280; }
+        .summary-value.bills { color: #f59e0b; }
+        .summary-value.paid { color: #10b981; }
+        .summary-value.closing { color: #4f46e5; }
+
+        /* Tables */
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 999px;
+            color: #ffffff;
+        }
+
+        .section-badge.bills { background: #f59e0b; }
+        .section-badge.payments { background: #10b981; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+        }
+
+        td {
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .amount {
+            font-weight: 600;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .amount.bill { color: #374151; }
+        .amount.payment { color: #10b981; }
+
+        .source-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .source-badge.cash {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .source-badge.bank {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .table-total {
+            background: #f9fafb;
+            font-weight: 700;
+        }
+
+        .table-total td {
+            border-top: 2px solid #e5e7eb;
+            border-bottom: none;
+        }
+
+        .empty-row {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* All-time Summary */
+        .alltime-summary {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 20px;
+        }
+
+        .alltime-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .alltime-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .alltime-item {
+            text-align: center;
+        }
+
+        .alltime-label {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .alltime-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Footer */
+        .report-footer {
+            margin-top: 30px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .report-container {
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .summary-card,
+            .supplier-info-box,
+            .alltime-summary,
+            th {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        /* Print button (hide on print) */
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        }
+
+        @media print {
+            .print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Print Report
+    </button>
+
+    <div class="report-container">
+        <!-- Header -->
+        <div class="report-header">
+            <div class="company-name">Asia Doctor's Point</div>
+            <div class="company-subtitle">Diagnostic Center Finance System</div>
+            <div class="report-title">Supplier Statement Report</div>
+        </div>
+
+        <!-- Supplier Info -->
+        <div class="supplier-info-box">
+            <div class="supplier-name-box">
+                <div class="supplier-avatar">{{ supplier.name[0]|upper }}</div>
+                <div>
+                    <div class="supplier-name">{{ supplier.name }}</div>
+                    <div class="supplier-details">{{ supplier.details or 'No details provided' }}</div>
+                </div>
+            </div>
+            <div class="date-range-box">
+                <div class="date-label">Report Period</div>
+                <div class="date-value">{{ start_date.strftime("%d %b %Y") }} — {{ end_date.strftime("%d %b %Y") }}</div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Opening Balance</div>
+                <div class="summary-value opening">৳{{ "%.2f"|format(opening_balance) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Bills (Period)</div>
+                <div class="summary-value bills">৳{{ "%.2f"|format(total_bills_period) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Payments (Period)</div>
+                <div class="summary-value paid">৳{{ "%.2f"|format(total_paid_period) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Closing Balance</div>
+                <div class="summary-value closing">৳{{ "%.2f"|format(closing_balance) }}</div>
+            </div>
+        </div>
+
+        <!-- Bills Section -->
+        <div class="section">
+            <div class="section-title">
+                <span>Bills / Invoices Received</span>
+                <span class="section-badge bills">{{ bills|length }} bill{{ 's' if bills|length != 1 else '' }}</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th class="text-end">Amount (৳)</th>
+                        <th>By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if bills %}
+                        {% for bill in bills %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ bill.date.strftime("%d %b %Y") }}</td>
+                            <td>{{ bill.description or '—' }}</td>
+                            <td class="text-end"><span class="amount bill">{{ "%.2f"|format(bill.amount) }}</span></td>
+                            <td>{{ bill.created_by.username if bill.created_by else '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-total">
+                            <td colspan="4" class="text-end">Total Bills:</td>
+                            <td class="text-end"><span class="amount bill">৳{{ "%.2f"|format(total_bills_period) }}</span></td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-row">No bills in this period</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Payments Section -->
+        <div class="section">
+            <div class="section-title">
+                <span>Payments Made</span>
+                <span class="section-badge payments">{{ payments|length }} payment{{ 's' if payments|length != 1 else '' }}</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Note</th>
+                        <th>Source</th>
+                        <th class="text-end">Amount (৳)</th>
+                        <th>By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if payments %}
+                        {% for p in payments %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ p.date.strftime("%d %b %Y") }}</td>
+                            <td>{{ p.note or '—' }}</td>
+                            <td><span class="source-badge {{ p.source }}">{{ p.source }}</span></td>
+                            <td class="text-end"><span class="amount payment">{{ "%.2f"|format(p.amount) }}</span></td>
+                            <td>{{ p.created_by.username if p.created_by else '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-total">
+                            <td colspan="5" class="text-end">Total Payments:</td>
+                            <td class="text-end"><span class="amount payment">৳{{ "%.2f"|format(total_paid_period) }}</span></td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="empty-row">No payments in this period</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- All-time Summary -->
+        <div class="alltime-summary">
+            <div class="alltime-title">All-Time Summary</div>
+            <div class="alltime-grid">
+                <div class="alltime-item">
+                    <div class="alltime-label">Total Bills</div>
+                    <div class="alltime-value">৳{{ "%.2f"|format(total_bills_all) }}</div>
+                </div>
+                <div class="alltime-item">
+                    <div class="alltime-label">Total Paid</div>
+                    <div class="alltime-value">৳{{ "%.2f"|format(total_paid_all) }}</div>
+                </div>
+                <div class="alltime-item">
+                    <div class="alltime-label">Current Balance</div>
+                    <div class="alltime-value">৳{{ "%.2f"|format(balance_all) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="report-footer">
+            <div>Generated on: {{ timestamp.strftime("%d %b %Y, %I:%M %p") }}</div>
+            <div>Asia Doctor's Point — Clinic Finance System</div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+

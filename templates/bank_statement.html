@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Transaction Statement</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            padding: 40px;
+            color: #000;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .date-range {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .timestamp-box {
+            text-align: right;
+            font-size: 14px;
+            border: 2px solid #000;
+            padding: 8px 12px;
+            display: inline-block;
+            float: right;
+        }
+
+        .clear { clear: both; }
+
+        .summary-box {
+            border: 2px solid #000;
+            padding: 15px 20px;
+            margin: 20px 0 30px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 15px;
+        }
+
+        .summary-label { font-weight: 600; }
+        .summary-value { font-weight: 600; }
+
+        /* TABLE LAYOUT + ALIGNMENT */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            table-layout: fixed; /* keeps column widths stable */
+        }
+
+        th, td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f3f3f3;
+            text-align: left;
+        }
+
+        /* fixed column widths */
+        .col-date      { width: 12%; }
+        .col-desc      { width: 30%; }
+        .col-deposit   { width: 13%; }
+        .col-withdraw  { width: 13%; }
+        .col-balance   { width: 17%; }
+        .col-by        { width: 15%; }
+
+        /* numeric alignment */
+        .text-right {
+            text-align: right;
+            font-variant-numeric: tabular-nums; /* perfect number alignment */
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .print-btn:hover { background: #000; }
+
+        @media print {
+            body { padding: 20px; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+
+<div class="container">
+    <div class="header">
+        <div class="timestamp-box">
+            {{ timestamp.strftime("%d/%m/%Y %I:%M:%S %p") }}
+        </div>
+        <div class="clear"></div>
+
+        <h1>Bank Transaction Statement</h1>
+        <div class="date-range">
+            From: {{ start_date.strftime("%d/%m/%Y") }}
+            &nbsp;&nbsp;&nbsp;
+            To: {{ end_date.strftime("%d/%m/%Y") }}
+        </div>
+    </div>
+
+    <div class="summary-box">
+        <div class="summary-row">
+            <span class="summary-label">Opening Balance:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(opening_balance or 0) }} BDT
+            </span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Total Deposits in Period:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(period_credits or 0) }} BDT
+            </span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Total Withdrawals in Period:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(period_debits or 0) }} BDT
+            </span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Closing Balance:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(closing_balance or 0) }} BDT
+            </span>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th class="col-date">Date</th>
+            <th class="col-desc">Description</th>
+            <th class="col-deposit text-right">Deposit</th>
+            <th class="col-withdraw text-right">Withdraw</th>
+            <th class="col-balance text-right">Balance</th>
+            <th class="col-by">By</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if entries %}
+            {% for e in entries %}
+            <tr>
+                <td>{{ e.date.strftime("%d/%m/%Y") }}</td>
+                <td>{{ e.description }}</td>
+                <td class="text-right">
+                    {% if e.credit %}
+                        {{ "%.2f"|format(e.credit) }}
+                    {% else %}-{% endif %}
+                </td>
+                <td class="text-right">
+                    {% if e.debit %}
+                        {{ "%.2f"|format(e.debit) }}
+                    {% else %}-{% endif %}
+                </td>
+                <td class="text-right">
+                    {{ "%.2f"|format(e.balance_after or 0) }}
+                </td>
+                <td>{{ e.created_by.username if e.created_by else '—' }}</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 15px;">
+                    No transactions in this date range.
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Generated by Clinic Finance App</p>
+        <p>Statement generated on {{ timestamp.strftime("%d/%m/%Y") }}</p>
+    </div>
+</div>
+</body>
+</html>

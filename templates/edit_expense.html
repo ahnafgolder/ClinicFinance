@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block page_title %}Edit Expenses{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted mb-0">
+    <a href="{{ url_for('superadmin_panel') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i>Back to SuperAdmin Panel
+    </a>
+</p>
+{% endblock %}
+
+{% block content %}
+<style>
+    .edit-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .edit-card {
+        border-radius: 20px;
+        border: none;
+        background: #ffffff;
+        box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+    }
+
+    .edit-header {
+        padding: 24px 28px;
+        background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .edit-header-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+    }
+
+    .edit-header-title {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .edit-header-subtitle {
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .edit-body {
+        padding: 28px;
+    }
+
+    /* Date selector */
+    .date-selector {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+    }
+
+    .date-selector-row {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .date-field {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .date-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .date-input {
+        width: 100%;
+        border-radius: 10px;
+        border: 1.5px solid #d1d5db;
+        background: #ffffff;
+        padding: 10px 14px;
+        font-size: 14px;
+        transition: all 0.15s ease;
+    }
+
+    .date-input:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+        outline: none;
+    }
+
+    .load-btn {
+        border-radius: 10px;
+        padding: 10px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+        border: none;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .load-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+
+    /* Expenses table */
+    .expenses-section {
+        margin-top: 8px;
+    }
+
+    .expenses-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .expenses-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .expenses-date {
+        font-size: 14px;
+        color: #8b5cf6;
+        font-weight: 600;
+        background: #f3e8ff;
+        padding: 6px 14px;
+        border-radius: 999px;
+    }
+
+    .expense-row {
+        display: grid;
+        grid-template-columns: 50px 1fr 1.5fr 140px 60px;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.15s ease;
+    }
+
+    .expense-row:hover {
+        background: #f1f5f9;
+        border-color: #d1d5db;
+    }
+
+    .expense-row.marked-delete {
+        background: #fef2f2;
+        border-color: #fecaca;
+        opacity: 0.7;
+    }
+
+    .expense-num {
+        font-size: 14px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-align: center;
+    }
+
+    .expense-input {
+        width: 100%;
+        border-radius: 8px;
+        border: 1.5px solid #d1d5db;
+        background: #ffffff;
+        padding: 8px 12px;
+        font-size: 13px;
+        transition: all 0.15s ease;
+    }
+
+    .expense-input:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+        outline: none;
+    }
+
+    .expense-select {
+        width: 100%;
+        border-radius: 8px;
+        border: 1.5px solid #d1d5db;
+        background: #ffffff;
+        padding: 8px 12px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .expense-select:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+        outline: none;
+    }
+
+    .delete-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #dc2626;
+    }
+
+    .delete-label {
+        font-size: 11px;
+        color: #dc2626;
+        text-align: center;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Headers */
+    .expense-headers {
+        display: grid;
+        grid-template-columns: 50px 1fr 1.5fr 140px 60px;
+        gap: 12px;
+        padding: 0 16px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+    }
+
+    /* Submit section */
+    .submit-section {
+        margin-top: 28px;
+        padding-top: 24px;
+        border-top: 2px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .summary-text {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .summary-text strong {
+        color: #8b5cf6;
+    }
+
+    .save-btn {
+        border-radius: 12px;
+        padding: 14px 32px;
+        font-size: 15px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+        border: none;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+    }
+
+    .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(139, 92, 246, 0.45);
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    /* Created by badge */
+    .created-by {
+        font-size: 10px;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .expense-row, .expense-headers {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .expense-headers {
+            display: none;
+        }
+        .expense-num {
+            display: none;
+        }
+    }
+</style>
+
+<div class="edit-container">
+    <div class="edit-card">
+        <div class="edit-header">
+            <div class="edit-header-icon">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+            <div>
+                <div class="edit-header-title">Edit Expenses</div>
+                <div class="edit-header-subtitle">Select a date to view and edit expenses</div>
+            </div>
+        </div>
+
+        <div class="edit-body">
+            <!-- Date Selector -->
+            <div class="date-selector">
+                <form method="post">
+                    <input type="hidden" name="form_type" value="select_date">
+                    <div class="date-selector-row">
+                        <div class="date-field">
+                            <label class="date-label">Select Date</label>
+                            <input type="date" name="date" class="date-input" 
+                                   value="{{ selected_date.strftime('%Y-%m-%d') if selected_date else '' }}" required>
+                        </div>
+                        <button type="submit" class="load-btn">
+                            <i class="bi bi-search me-2"></i>Load Expenses
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Expenses Section -->
+            {% if selected_date %}
+            <div class="expenses-section">
+                <div class="expenses-header">
+                    <div class="expenses-title">Expenses Found</div>
+                    <div class="expenses-date">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ selected_date.strftime("%d %b %Y") }}
+                    </div>
+                </div>
+
+                {% if expenses %}
+                <form method="post" id="editForm">
+                    <input type="hidden" name="form_type" value="save_expenses">
+                    <input type="hidden" name="expense_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+
+                    <div class="expense-headers">
+                        <div>#</div>
+                        <div>Category</div>
+                        <div>Description</div>
+                        <div>Amount (৳)</div>
+                        <div>Delete</div>
+                    </div>
+
+                    {% for exp in expenses %}
+                    <div class="expense-row" id="row-{{ exp.id }}">
+                        <input type="hidden" name="expense_id[]" value="{{ exp.id }}">
+                        
+                        <div class="expense-num">{{ loop.index }}</div>
+                        
+                        <div>
+                            <select class="expense-select" name="category[]" onchange="updateCategory(this, {{ exp.id }})">
+                                <option value="{{ exp.category }}" selected>{{ exp.category }}</option>
+                                {% for t in templates %}
+                                    {% if t.name != exp.category %}
+                                    <option value="{{ t.name }}">{{ t.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <input type="text" class="expense-input" name="description[]" 
+                                   value="{{ exp.description or '' }}" placeholder="Description">
+                            {% if exp.created_by %}
+                            <div class="created-by">Added by: {{ exp.created_by.username }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <input type="number" step="0.01" class="expense-input" name="amount[]" 
+                                   value="{{ '%.2f'|format(exp.amount) }}" placeholder="0.00" oninput="updateTotal()">
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <input type="checkbox" class="delete-checkbox" name="delete[]" 
+                                   value="{{ exp.id }}" onchange="toggleDelete(this, {{ exp.id }})">
+                            <span class="delete-label">Delete</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="submit-section">
+                        <div class="summary-text">
+                            <strong>{{ expenses|length }}</strong> expense(s) for this date
+                            <span style="margin-left: 20px; font-size: 18px;">
+                                Total: <strong id="totalAmount">৳{{ "%.2f"|format(expenses|sum(attribute='amount')) }}</strong>
+                            </span>
+                        </div>
+                        <button type="submit" class="save-btn" onclick="return confirmSave()">
+                            <i class="bi bi-check2-all me-2"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h5>No Expenses Found</h5>
+                    <p>There are no expenses recorded for {{ selected_date.strftime("%d %b %Y") }}.</p>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-calendar-event"></i>
+                <h5>Select a Date</h5>
+                <p>Choose a date above to view and edit expenses for that day.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDelete(checkbox, expId) {
+        const row = document.getElementById(`row-${expId}`);
+        if (checkbox.checked) {
+            row.classList.add('marked-delete');
+        } else {
+            row.classList.remove('marked-delete');
+        }
+        updateTotal();
+    }
+
+    function confirmSave() {
+        const deleteChecked = document.querySelectorAll('input[name="delete[]"]:checked').length;
+        if (deleteChecked > 0) {
+            return confirm(`You have marked ${deleteChecked} expense(s) for deletion. This cannot be undone. Continue?`);
+        }
+        return true;
+    }
+
+    function updateCategory(select, expId) {
+        // Optional: could auto-fill description from template if needed
+    }
+
+    function updateTotal() {
+        const amountInputs = document.querySelectorAll('input[name="amount[]"]');
+        const deleteCheckboxes = document.querySelectorAll('input[name="delete[]"]');
+        
+        // Get list of IDs marked for deletion
+        const deletedIds = new Set();
+        deleteCheckboxes.forEach(cb => {
+            if (cb.checked) deletedIds.add(cb.value);
+        });
+        
+        let total = 0;
+        const expenseIds = document.querySelectorAll('input[name="expense_id[]"]');
+        
+        amountInputs.forEach((input, index) => {
+            const expId = expenseIds[index]?.value;
+            if (!deletedIds.has(expId)) {
+                const val = parseFloat(input.value) || 0;
+                total += val;
+            }
+        });
+        
+        document.getElementById('totalAmount').textContent = `৳${total.toFixed(2)}`;
+    }
+</script>
+
+{% endblock %}
+

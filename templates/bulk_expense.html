@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block page_title %}Bulk Expense Entry{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted mb-0">
+    <a href="{{ url_for('superadmin_panel') }}" class="text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i>Back to SuperAdmin Panel
+    </a>
+</p>
+{% endblock %}
+
+{% block content %}
+<style>
+    .bulk-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .bulk-card {
+        border-radius: 20px;
+        border: none;
+        background: #ffffff;
+        box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+    }
+
+    .bulk-header {
+        padding: 24px 28px;
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .bulk-header-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+    }
+
+    .bulk-header-title {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .bulk-header-subtitle {
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .bulk-body {
+        padding: 28px;
+    }
+
+    .config-section {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+    }
+
+    .config-row {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .config-field {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .config-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .config-input {
+        width: 100%;
+        border-radius: 10px;
+        border: 1.5px solid #d1d5db;
+        background: #ffffff;
+        padding: 10px 14px;
+        font-size: 14px;
+        transition: all 0.15s ease;
+    }
+
+    .config-input:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+        outline: none;
+    }
+
+    .generate-btn {
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        border: none;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .generate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Expense entries */
+    .entries-section {
+        margin-top: 20px;
+    }
+
+    .entries-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .entries-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .entries-count {
+        font-size: 13px;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 4px 12px;
+        border-radius: 999px;
+    }
+
+    .entry-row {
+        display: grid;
+        grid-template-columns: 50px 1fr 1.5fr 140px 40px;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        background: #f9fafb;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.15s ease;
+    }
+
+    .entry-row:hover {
+        background: #f1f5f9;
+        border-color: #d1d5db;
+    }
+
+    .entry-num {
+        font-size: 14px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-align: center;
+    }
+
+    .entry-input {
+        width: 100%;
+        border-radius: 8px;
+        border: 1.5px solid #d1d5db;
+        background: #ffffff;
+        padding: 8px 12px;
+        font-size: 13px;
+        transition: all 0.15s ease;
+    }
+
+    .entry-input:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+        outline: none;
+    }
+
+    .entry-select {
+        width: 100%;
+        border-radius: 8px;
+        border: 1.5px solid #d1d5db;
+        background: #ffffff;
+        padding: 8px 12px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .entry-select:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+        outline: none;
+    }
+
+    .remove-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: #fee2e2;
+        color: #dc2626;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+
+    .remove-btn:hover {
+        background: #fecaca;
+    }
+
+    .add-row-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        border: 2px dashed #d1d5db;
+        background: transparent;
+        color: #6b7280;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        margin-top: 8px;
+    }
+
+    .add-row-btn:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+        background: #fffbeb;
+    }
+
+    /* Submit section */
+    .submit-section {
+        margin-top: 28px;
+        padding-top: 24px;
+        border-top: 2px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .total-preview {
+        font-size: 15px;
+        color: #374151;
+    }
+
+    .total-preview strong {
+        font-size: 20px;
+        color: #f59e0b;
+    }
+
+    .submit-btn {
+        border-radius: 12px;
+        padding: 14px 32px;
+        font-size: 15px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        border: none;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(245, 158, 11, 0.45);
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Header labels */
+    .entry-headers {
+        display: grid;
+        grid-template-columns: 50px 1fr 1.5fr 140px 40px;
+        gap: 12px;
+        padding: 0 16px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+    }
+
+    @media (max-width: 768px) {
+        .entry-row, .entry-headers {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .entry-headers {
+            display: none;
+        }
+        .entry-num {
+            display: none;
+        }
+    }
+</style>
+
+<div class="bulk-container">
+    <div class="bulk-card">
+        <div class="bulk-header">
+            <div class="bulk-header-icon">
+                <i class="bi bi-stack"></i>
+            </div>
+            <div>
+                <div class="bulk-header-title">Add Multiple Expenses</div>
+                <div class="bulk-header-subtitle">Enter all expenses for a single date at once</div>
+            </div>
+        </div>
+
+        <div class="bulk-body">
+            <form method="post" id="bulkForm">
+                <!-- Configuration Section -->
+                <div class="config-section">
+                    <div class="config-row">
+                        <div class="config-field">
+                            <label class="config-label">Expense Date</label>
+                            <input type="date" name="date" class="config-input" id="expenseDate" 
+                                   value="{{ today if today else '' }}">
+                        </div>
+                        <div class="config-field" style="max-width: 180px;">
+                            <label class="config-label">Number of Entries</label>
+                            <input type="number" min="1" max="50" value="5" class="config-input" id="numEntries">
+                        </div>
+                        <button type="button" class="generate-btn" onclick="generateFields()">
+                            <i class="bi bi-grid-3x3-gap me-2"></i>Generate Fields
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Entries Section -->
+                <div class="entries-section">
+                    <div class="entries-header">
+                        <div class="entries-title">Expense Entries</div>
+                        <div class="entries-count" id="entriesCount">0 entries</div>
+                    </div>
+
+                    <div class="entry-headers">
+                        <div>#</div>
+                        <div>Expense Type</div>
+                        <div>Description</div>
+                        <div>Amount (৳)</div>
+                        <div></div>
+                    </div>
+
+                    <div id="entriesContainer">
+                        <!-- Dynamic entries will be added here -->
+                    </div>
+
+                    <button type="button" class="add-row-btn" onclick="addEntry()">
+                        <i class="bi bi-plus-lg me-2"></i>Add Another Entry
+                    </button>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="submit-section">
+                    <div class="total-preview">
+                        Total Amount: <strong id="totalAmount">৳0.00</strong>
+                        <span id="validCount" style="margin-left: 12px; font-size: 13px; color: #6b7280;"></span>
+                    </div>
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="bi bi-check2-all me-2"></i>Submit All Entries
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Expense templates from server
+    const templates = [
+        {% for t in templates %}
+        {
+            id: {{ t.id }},
+            name: "{{ t.name|e }}",
+            description: "{{ (t.default_description or '')|e }}",
+            amount: {{ t.default_amount or 0 }}
+        }{{ "," if not loop.last else "" }}
+        {% endfor %}
+    ];
+
+    let entryCount = 0;
+
+    function generateFields() {
+        const num = parseInt(document.getElementById('numEntries').value) || 5;
+        const container = document.getElementById('entriesContainer');
+        container.innerHTML = '';
+        entryCount = 0;
+
+        for (let i = 0; i < num; i++) {
+            addEntry();
+        }
+    }
+
+    function addEntry() {
+        entryCount++;
+        const container = document.getElementById('entriesContainer');
+        
+        const row = document.createElement('div');
+        row.className = 'entry-row';
+        row.id = `entry-${entryCount}`;
+        
+        // Build template options
+        let templateOptions = '<option value="">-- Select or type --</option>';
+        templates.forEach(t => {
+            templateOptions += `<option value="${t.name}" data-desc="${t.description}" data-amount="${t.amount}">${t.name}</option>`;
+        });
+
+        row.innerHTML = `
+            <div class="entry-num">${entryCount}</div>
+            <div>
+                <select class="entry-select" name="category[]" onchange="fillFromTemplate(this, ${entryCount})">
+                    ${templateOptions}
+                </select>
+            </div>
+            <div>
+                <input type="text" class="entry-input" name="description[]" id="desc-${entryCount}" placeholder="Description (optional)">
+            </div>
+            <div>
+                <input type="number" step="0.01" class="entry-input" name="amount[]" id="amount-${entryCount}" placeholder="0.00" oninput="updateTotal()">
+            </div>
+            <div>
+                <button type="button" class="remove-btn" onclick="removeEntry(${entryCount})">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(row);
+        updateEntriesCount();
+        updateTotal();
+    }
+
+    function removeEntry(id) {
+        const entry = document.getElementById(`entry-${id}`);
+        if (entry) {
+            entry.remove();
+            updateEntriesCount();
+            updateTotal();
+            renumberEntries();
+        }
+    }
+
+    function renumberEntries() {
+        const entries = document.querySelectorAll('.entry-row');
+        entries.forEach((entry, index) => {
+            const numEl = entry.querySelector('.entry-num');
+            if (numEl) numEl.textContent = index + 1;
+        });
+    }
+
+    function fillFromTemplate(select, entryId) {
+        const option = select.options[select.selectedIndex];
+        const desc = option.getAttribute('data-desc') || '';
+        const amount = option.getAttribute('data-amount') || '';
+        
+        const descInput = document.getElementById(`desc-${entryId}`);
+        const amountInput = document.getElementById(`amount-${entryId}`);
+        
+        if (descInput && desc) descInput.value = desc;
+        if (amountInput && amount && parseFloat(amount) > 0) {
+            amountInput.value = parseFloat(amount).toFixed(2);
+        }
+        updateTotal();
+    }
+
+    function updateEntriesCount() {
+        const count = document.querySelectorAll('.entry-row').length;
+        document.getElementById('entriesCount').textContent = `${count} ${count === 1 ? 'entry' : 'entries'}`;
+    }
+
+    function updateTotal() {
+        const amountInputs = document.querySelectorAll('input[name="amount[]"]');
+        let total = 0;
+        let validCount = 0;
+        
+        amountInputs.forEach(input => {
+            const val = parseFloat(input.value) || 0;
+            if (val > 0) {
+                total += val;
+                validCount++;
+            }
+        });
+        
+        document.getElementById('totalAmount').textContent = `৳${total.toFixed(2)}`;
+        document.getElementById('validCount').textContent = validCount > 0 ? `(${validCount} valid)` : '';
+        
+        // Enable/disable submit button
+        document.getElementById('submitBtn').disabled = validCount === 0;
+    }
+
+    // Initialize with 5 fields
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set today's date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('expenseDate').value = today;
+        
+        // Generate initial fields
+        generateFields();
+    });
+</script>
+
+{% endblock %}
+
+

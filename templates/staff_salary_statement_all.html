@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff Salary Statement — All Staff</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            padding: 40px;
+            color: #000;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .sub { font-size: 14px; color: #555; }
+
+        .timestamp-box {
+            float: right;
+            font-size: 13px;
+            border: 1px solid #000;
+            padding: 6px 10px;
+        }
+
+        .clear { clear: both; }
+
+        .summary-box {
+            border: 2px solid #000;
+            padding: 12px 16px;
+            margin: 20px 0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+
+        .summary-label { font-weight: 600; }
+        .summary-value { font-weight: 600; }
+
+        /* TABLE LAYOUT + ALIGNMENT */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            table-layout: fixed; /* keeps columns stable */
+        }
+
+        th, td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f3f3f3;
+            text-align: left;
+        }
+
+        /* column widths */
+        .col-index   { width: 5%; }
+        .col-name    { width: 25%; }
+        .col-design  { width: 25%; }
+        .col-salary  { width: 15%; }
+        .col-paid    { width: 15%; }
+        .col-balance { width: 15%; }
+
+        /* numeric alignment */
+        .text-right {
+            text-align: right;
+            font-variant-numeric: tabular-nums; /* perfect vertical alignment */
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .print-btn:hover { background: #000; }
+
+        @media print {
+            body { padding: 20px; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+
+<div class="container">
+    <div class="header">
+        <div class="timestamp-box">
+            {{ timestamp.strftime("%d/%m/%Y %I:%M:%S %p") }}
+        </div>
+        <div class="clear"></div>
+
+        <h1>Staff Salary Statement — All Staff</h1>
+        <div class="sub">
+            Month: {{ start_date.strftime("%B %Y") }}<br>
+            Period: {{ start_date.strftime("%d/%m/%Y") }}
+            to {{ end_date.strftime("%d/%m/%Y") }}
+        </div>
+    </div>
+
+    <div class="summary-box">
+        <div class="summary-row">
+            <span class="summary-label">Total Salaries for Period:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(total_salary_all or 0) }} BDT
+            </span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Total Paid to All Staff in Period:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format(total_paid_all or 0) }} BDT
+            </span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Total Remaining:</span>
+            <span class="summary-value">
+                {{ "%.2f"|format((total_salary_all or 0) - (total_paid_all or 0)) }} BDT
+            </span>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th class="col-index">#</th>
+            <th class="col-name">Name</th>
+            <th class="col-design">Designation</th>
+            <th class="col-salary text-right">Salary</th>
+            <th class="col-paid text-right">Paid</th>
+            <th class="col-balance text-right">Balance</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if rows %}
+            {% for row in rows %}
+                {% set s = row.staff %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.designation }}</td>
+                    <td class="text-right">
+                        {{ "%.2f"|format(row.salary or 0) }}{% if row.has_override %} *{% endif %}
+                    </td>
+                    <td class="text-right">
+                        {{ "%.2f"|format(row.paid or 0) }}
+                    </td>
+                    <td class="text-right">
+                        {{ "%.2f"|format(row.balance or 0) }}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 12px;">
+                    No staff or payments found for this period.
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Generated by Clinic Finance App</p>
+        <p>Statement generated on {{ timestamp.strftime("%d/%m/%Y") }}</p>
+    </div>
+</div>
+</body>
+</html>

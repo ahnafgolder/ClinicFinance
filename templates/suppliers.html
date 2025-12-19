@@ -1,0 +1,796 @@
+{% extends "base.html" %}
+
+{% block page_title %}Suppliers{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted mb-0">
+    Add suppliers, pay them part by part from bank or cash, and print payment statements.
+</p>
+{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-dark: #4338ca;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    .supplier-page {
+        max-width: 100%;
+        padding: 0 4px;
+    }
+
+    /* Card Component */
+    .card-modern {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
+    }
+
+    .card-modern:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Top Section Cards */
+    .top-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .form-card {
+        padding: 24px;
+        position: relative;
+    }
+
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        border-radius: 16px 16px 0 0;
+    }
+
+    .form-card.green::before {
+        background: linear-gradient(90deg, var(--success), #34d399);
+    }
+
+    .form-card.amber::before {
+        background: linear-gradient(90deg, var(--warning), #fbbf24);
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        font-size: 24px;
+    }
+
+    .card-icon.primary {
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        color: var(--primary);
+    }
+
+    .card-icon.green {
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        color: var(--success);
+    }
+
+    .card-icon.amber {
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        color: var(--warning);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin-bottom: 4px;
+        letter-spacing: -0.025em;
+    }
+
+    .card-subtitle {
+        font-size: 13px;
+        color: var(--gray-500);
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    /* Form Styles */
+    .form-label-modern {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-hint {
+        font-size: 11px;
+        color: var(--gray-400);
+        margin-top: 4px;
+    }
+
+    .form-input-modern {
+        width: 100%;
+        border-radius: 10px;
+        border: 1.5px solid var(--gray-200);
+        background: var(--gray-50);
+        padding: 10px 14px;
+        font-size: 14px;
+        color: var(--gray-900);
+        transition: all 0.15s ease;
+    }
+
+    .form-input-modern:hover {
+        border-color: var(--gray-300);
+    }
+
+    .form-input-modern:focus {
+        background: #ffffff;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        outline: none;
+    }
+
+    .form-input-modern::placeholder {
+        color: var(--gray-400);
+    }
+
+    /* Button Styles */
+    .btn-modern {
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+    }
+
+    .btn-primary-modern:active {
+        transform: translateY(0);
+    }
+
+    .btn-outline-modern {
+        background: #ffffff;
+        border: 1.5px solid var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .btn-outline-modern:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-300);
+    }
+
+    .btn-success-modern {
+        background: linear-gradient(135deg, var(--success), #34d399);
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-success-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Table Section */
+    .table-card {
+        margin-top: 8px;
+    }
+
+    .table-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .table-header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .table-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: var(--primary);
+    }
+
+    .table-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gray-900);
+        letter-spacing: -0.025em;
+    }
+
+    .table-subtitle {
+        font-size: 13px;
+        color: var(--gray-500);
+        margin-top: 2px;
+    }
+
+    .supplier-count-badge {
+        background: var(--primary);
+        color: #ffffff;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    /* Table Styles */
+    .table-modern {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-modern thead th {
+        background: linear-gradient(to bottom, var(--gray-50), var(--gray-100));
+        padding: 14px 16px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--gray-600);
+        border-bottom: 1px solid var(--gray-200);
+        white-space: nowrap;
+    }
+
+    .table-modern tbody td {
+        padding: 16px;
+        border-bottom: 1px solid var(--gray-100);
+        vertical-align: middle;
+    }
+
+    .table-modern tbody tr {
+        transition: background 0.15s ease;
+    }
+
+    .table-modern tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .table-modern tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Supplier Info Cell */
+    .supplier-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .supplier-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--warning), #fbbf24);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+
+    .supplier-name {
+        font-weight: 600;
+        color: var(--gray-900);
+        font-size: 14px;
+        transition: color 0.15s ease;
+    }
+
+    a.supplier-info:hover .supplier-name {
+        color: var(--primary);
+    }
+
+    a.supplier-info:hover .supplier-avatar {
+        transform: scale(1.05);
+    }
+
+    .supplier-avatar {
+        transition: transform 0.15s ease;
+    }
+
+    .supplier-details {
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-top: 2px;
+    }
+
+    /* Money Cells */
+    .money-cell {
+       
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .money-payable {
+        color: var(--gray-800);
+    }
+
+    .money-paid {
+        color: var(--success);
+    }
+
+    .money-balance {
+        color: var(--primary);
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        padding: 6px 12px;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    /* Date Badge */
+    .date-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #0369a1;
+    }
+
+    .date-badge svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Pay Form Cell */
+    .pay-cell {
+        min-width: 340px;
+    }
+
+    .pay-form {
+        background: var(--gray-50);
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .pay-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .pay-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .pay-input {
+        flex: 1;
+        min-width: 0;
+        height: 36px;
+        border-radius: 8px;
+        border: 1.5px solid var(--gray-200);
+        background: #ffffff;
+        padding: 0 12px;
+        font-size: 13px;
+        transition: all 0.15s ease;
+    }
+
+    .pay-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        outline: none;
+    }
+
+    .pay-select {
+        width: 90px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1.5px solid var(--gray-200);
+        background: #ffffff;
+        padding: 0 10px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .pay-btn {
+        height: 36px;
+        padding: 0 16px;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(135deg, var(--success), #34d399);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .pay-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Action Buttons */
+    .action-btns {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1.5px solid var(--gray-200);
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        color: var(--gray-500);
+    }
+
+    .btn-icon:hover {
+        background: var(--gray-50);
+        color: var(--gray-700);
+    }
+
+    .btn-icon.danger:hover {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: var(--danger);
+    }
+
+    .btn-icon.primary:hover {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+        color: var(--primary);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 36px;
+        color: var(--gray-400);
+    }
+
+    .empty-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 8px;
+    }
+
+    .empty-text {
+        font-size: 14px;
+        color: var(--gray-500);
+    }
+
+    /* Row Index */
+    .row-index {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .top-cards-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .pay-cell {
+            min-width: 280px;
+        }
+        
+        .pay-row {
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-modern {
+        animation: fadeIn 0.4s ease;
+    }
+
+    .table-modern tbody tr {
+        animation: fadeIn 0.3s ease;
+        animation-fill-mode: both;
+    }
+
+    .table-modern tbody tr:nth-child(1) { animation-delay: 0.05s; }
+    .table-modern tbody tr:nth-child(2) { animation-delay: 0.1s; }
+    .table-modern tbody tr:nth-child(3) { animation-delay: 0.15s; }
+    .table-modern tbody tr:nth-child(4) { animation-delay: 0.2s; }
+    .table-modern tbody tr:nth-child(5) { animation-delay: 0.25s; }
+</style>
+
+<div class="supplier-page">
+    <!-- TOP SECTION - FORM CARDS -->
+    <div class="top-cards-grid">
+        {% if g.user.role == 'admin' %}
+        <!-- Add Supplier Card -->
+        <div class="card-modern form-card">
+            <div class="card-icon primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+            </div>
+            <div class="card-title">Add New Supplier</div>
+            <div class="card-subtitle">Enter supplier details. You can add bills from their detail page.</div>
+            
+            <form method="post" autocomplete="off">
+                <input type="hidden" name="form_type" value="add_supplier">
+                <div style="margin-bottom: 14px;">
+                    <label class="form-label-modern">Supplier Name</label>
+                    <input type="text" name="name" class="form-input-modern" placeholder="Enter supplier name" required>
+                </div>
+                <div style="margin-bottom: 14px;">
+                    <label class="form-label-modern">Details (optional)</label>
+                    <input type="text" name="details" class="form-input-modern" placeholder="Company, contact info, etc.">
+                </div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-modern btn-primary-modern">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                        Add Supplier
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Supplier Statement Card -->
+        <div class="card-modern form-card green">
+            <div class="card-icon green">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="card-title">Supplier Statement</div>
+            <div class="card-subtitle">Generate a payment statement for a specific supplier within a date range.</div>
+            
+            <form method="post" action="{{ url_for('supplier_statement') }}" target="_blank">
+                <div style="margin-bottom: 14px;">
+                    <label class="form-label-modern">Select Supplier</label>
+                    <select name="supplier_id" class="form-input-modern" required>
+                        {% for row in rows %}
+                        <option value="{{ row.supplier.id }}">
+                            {{ row.supplier.name }}{% if row.supplier.details %} — {{ row.supplier.details }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label class="form-label-modern">Start Date</label>
+                        <input type="date" name="start_date" class="form-input-modern" required>
+                    </div>
+                    <div>
+                        <label class="form-label-modern">End Date</label>
+                        <input type="date" name="end_date" class="form-input-modern" required>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-modern btn-success-modern">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                        Print Statement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SUPPLIER TABLE -->
+    <div class="card-modern table-card">
+        <div class="table-header">
+            <div class="table-header-left">
+                <div class="table-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                    <div class="table-title">Supplier List</div>
+                    <div class="table-subtitle">Pay partial amounts anytime; balances update automatically</div>
+                </div>
+            </div>
+            <span class="supplier-count-badge">{{ rows|length }} supplier{{ 's' if rows|length != 1 else '' }}</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Supplier</th>
+                        <th class="text-end">Total Payable</th>
+                        <th class="text-end">Paid</th>
+                        <th class="text-end">Balance</th>
+                        <th>Last Paid</th>
+                        <th>Pay</th>
+                        {% if g.user.role == 'admin' %}
+                        <th>Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rows %}
+                        {% for row in rows %}
+                        <tr>
+                            <td>
+                                <div class="row-index">{{ loop.index }}</div>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('supplier_detail', supplier_id=row.supplier.id) }}" class="supplier-info text-decoration-none">
+                                    <div class="supplier-avatar">
+                                        {{ row.supplier.name[0]|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="supplier-name">{{ row.supplier.name }}</div>
+                                        {% if row.supplier.details %}
+                                        <div class="supplier-details">{{ row.supplier.details }}</div>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </td>
+                            <td class="text-end">
+                                <span class="money-cell money-payable">
+                                    ৳{{ "%.2f"|format(row.supplier.total_due or 0) }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <span class="money-cell money-paid">
+                                    ৳{{ "%.2f"|format(row.total_paid or 0) }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <span class="money-cell money-balance">
+                                    ৳{{ "%.2f"|format(row.balance or 0) }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if row.last_date %}
+                                <span class="date-badge">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                    {{ row.last_date.strftime("%d %b %Y") }}
+                                </span>
+                                {% else %}
+                                <span style="color: var(--gray-400);">—</span>
+                                {% endif %}
+                            </td>
+                            <!-- Pay Cell -->
+                            <td class="pay-cell">
+                                <form method="post" class="pay-form" autocomplete="off">
+                                    <input type="hidden" name="form_type" value="pay_supplier">
+                                    <input type="hidden" name="supplier_id" value="{{ row.supplier.id }}">
+                                    <div class="pay-row">
+                                        <input type="number" step="0.01" name="amount" class="pay-input" placeholder="Amount (৳)" required>
+                                        <select name="source" class="pay-select">
+                                            <option value="cash">Cash</option>
+                                            <option value="bank">Bank</option>
+                                        </select>
+                                        <button type="submit" class="pay-btn">Pay</button>
+                                    </div>
+                                    <div class="pay-row">
+                                        <input type="date" name="date" class="pay-input">
+                                        <input type="text" name="note" class="pay-input" placeholder="Note (optional)">
+                                    </div>
+                                </form>
+                            </td>
+                            {% if g.user.role == 'admin' %}
+                            <!-- Action Buttons -->
+                            <td>
+                                <div class="action-btns">
+                                    <a href="{{ url_for('supplier_history', supplier_id=row.supplier.id) }}" 
+                                       class="btn-icon primary" 
+                                       title="View History"
+                                       target="_blank">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    </a>
+                                    <form method="post" 
+                                          action="{{ url_for('delete_supplier', supplier_id=row.supplier.id) }}" 
+                                          onsubmit="return confirm('Delete this supplier and all its payments?');"
+                                          style="margin: 0;">
+                                        <button type="submit" class="btn-icon danger" title="Remove Supplier">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="{{ 8 if g.user.role == 'admin' else 7 }}">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </div>
+                                    <div class="empty-title">No suppliers added yet</div>
+                                    <div class="empty-text">Add your first supplier using the form above to start tracking payments.</div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

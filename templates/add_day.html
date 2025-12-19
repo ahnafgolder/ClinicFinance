@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block page_title %}Add / Edit Collection{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted mb-0">
+    Store daily collections and notes. If you save again for the same date, the day summary is updated.
+</p>
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .collection-wrapper {
+        max-width: 760px;
+        margin: 0 auto;
+    }
+
+    .collection-card {
+        border-radius: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 16px 45px rgba(15, 23, 42, 0.16);
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .collection-header {
+        padding: 16px 20px 14px;
+        background: linear-gradient(135deg, #0ea5e9, #2563eb);
+        color: #e5f4ff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .collection-header-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(191, 219, 254, 0.7);
+        color: #f9fafb;
+    }
+
+    .collection-header-title {
+        font-size: 17px;
+        font-weight: 600;
+    }
+
+    .collection-header-sub {
+        font-size: 12px;
+        opacity: 0.9;
+    }
+
+    .collection-body {
+        padding: 22px 22px 18px;
+    }
+
+    .collection-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .collection-hint {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .collection-input,
+    .collection-textarea {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        padding: 9px 11px;
+        font-size: 14px;
+        transition: all .15s ease;
+    }
+
+    .collection-input:focus,
+    .collection-textarea:focus {
+        background: #ffffff;
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.35);
+        outline: none;
+    }
+
+    .collection-footer {
+        padding-top: 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .collection-btn-primary {
+        border-radius: 999px;
+        padding: 9px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        background: linear-gradient(90deg, #0ea5e9, #2563eb);
+        color: #f9fafb;
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+        transition: all .12s ease;
+    }
+
+    .collection-btn-primary:hover {
+        filter: brightness(1.03);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(37, 99, 235, 0.45);
+    }
+
+    .collection-btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+    }
+
+    .collection-btn-cancel {
+        border-radius: 999px;
+        padding: 9px 18px;
+        font-size: 14px;
+    }
+</style>
+
+<div class="collection-wrapper">
+    <div class="card collection-card">
+        <div class="collection-header">
+            <div class="collection-header-icon">
+                <i class="bi bi-calendar2-check"></i>
+            </div>
+            <div>
+                <div class="collection-header-title">Daily Collection Summary</div>
+                <div class="collection-header-sub">
+                    Enter new &amp; old collection amounts and optional notes for the selected date.
+                </div>
+            </div>
+        </div>
+
+        <div class="collection-body">
+            <form method="post" autocomplete="off">
+                <div class="row g-3">
+
+                    <!-- Date -->
+                    <div class="col-md-4">
+                        <label class="collection-label">Date</label>
+                        <input type="date"
+                               name="date"
+                               class="form-control collection-input"
+                               required>
+                        <div class="collection-hint mt-1">
+                            Saving again for the same date will update the summary.
+                        </div>
+                    </div>
+
+                    <!-- Collect Soft New -->
+                    <div class="col-md-4">
+                        <label class="collection-label">Collect Soft (New)</label>
+                        <input type="number"
+                               step="0.01"
+                               name="collect_soft_new"
+                               class="form-control collection-input"
+                               placeholder="0.00">
+                    </div>
+
+                    <!-- Collect Soft Old -->
+                    <div class="col-md-4">
+                        <label class="collection-label">Collect Soft (Old)</label>
+                        <input type="number"
+                               step="0.01"
+                               name="collect_soft_old"
+                               class="form-control collection-input"
+                               placeholder="0.00">
+                    </div>
+
+                    {# TVS / ULT / PC / Cash fields intentionally removed #}
+
+                    <!-- Notes -->
+                    <div class="col-12">
+                        <label class="collection-label">Notes</label>
+                        <textarea name="notes"
+                                  rows="3"
+                                  class="form-control collection-textarea"
+                                  placeholder="Any remarks (e.g. holiday, festival, extra duty, etc.)."></textarea>
+                    </div>
+                </div>
+
+                <div class="collection-footer">
+                    <a href="{{ url_for('dashboard') }}"
+                       class="btn btn-outline-secondary collection-btn-cancel">
+                        Cancel
+                    </a>
+                    <button class="collection-btn-primary" type="submit">
+                        Save Day Summary
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

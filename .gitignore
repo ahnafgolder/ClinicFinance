@@ -1,0 +1,33 @@
+# Environment variables (contains secrets!)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# SQLite database (local only - we use Supabase in production)
+*.db
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Byte-compiled files
+*.pyc
+
+# Distribution
+dist/
+build/
+*.egg-info/
+

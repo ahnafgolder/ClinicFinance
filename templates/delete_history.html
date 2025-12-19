@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block page_title %}Delete History{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted">
+    Log of records deleted by users (day summaries, expenses, doctor bills, bank entries, staff, expense types, etc.).
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <strong>Recent Deletions</strong>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>ID</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                        <td>
+                            {% if log.username %}
+                                {{ log.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ log.entity_type }}</td>
+                        <td>{{ log.entity_id }}</td>
+                        <td>{{ log.description }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">
+                            No deletions logged yet.
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

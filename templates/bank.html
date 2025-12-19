@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block page_title %}Bank Balance{% endblock %}
+{% block page_subtitle %}
+<p class="text-muted mb-0">
+    Move money between cash in hand and bank. Deposits reduce cash and increase bank.
+    Withdrawals reduce bank and increase cash. You can also print a statement by date range.
+</p>
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .bank-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Top summary cards */
+    .bank-stat-card {
+        border-radius: 18px;
+        border: none;
+        overflow: hidden;
+        color: #0f172a;
+    }
+
+    .bank-stat-card .card-body {
+        padding: 16px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .bank-stat-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: rgba(15,23,42,0.7);
+        margin-bottom: 4px;
+    }
+
+    .bank-stat-value {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .bank-stat-sub {
+        font-size: 11px;
+        color: rgba(15,23,42,0.7);
+    }
+
+    .bank-stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #ffffff;
+        background: rgba(15, 23, 42, 0.35);
+    }
+
+    .bank-stat-cash {
+        background: linear-gradient(135deg, #bbf7d0, #91f6b6);
+        color: #052e16;
+    }
+
+    .bank-stat-bank {
+        background: linear-gradient(135deg, #dbeafe, #99b1f2);
+        color: #020617;
+    }
+
+    /* Left column cards */
+    .bank-card {
+        border-radius: 18px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .bank-form-header {
+        padding: 14px 18px 12px;
+        background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
+        color: #e5edff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .bank-form-title {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .bank-form-sub {
+        font-size: 11px;
+        opacity: 0.9;
+    }
+
+    .bank-form-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        background: rgba(15, 23, 42, 0.3);
+        border: 1px solid rgba(191, 219, 254, 0.8);
+    }
+
+    .bank-form-body {
+        padding: 18px 18px 14px;
+    }
+
+    .bank-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .bank-hint {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .bank-input,
+    .bank-select {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        padding: 9px 11px;
+        font-size: 14px;
+        transition: all .15s ease;
+    }
+
+    .bank-input:focus,
+    .bank-select:focus {
+        background: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+        outline: none;
+    }
+
+    .bank-input-group .input-group-text {
+        border-radius: 12px 0 0 12px;
+        border-right: 0;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #d1d5db;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .bank-input-group .bank-input {
+        border-radius: 0 12px 12px 0;
+        border-left: 0;
+    }
+
+    .bank-form-footer {
+        padding-top: 10px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .bank-btn-primary {
+        border-radius: 999px;
+        padding: 8px 18px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
+        color: #f9fafb;
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+        transition: all .12s ease;
+    }
+
+    .bank-btn-primary:hover {
+        filter: brightness(1.03);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px rgba(37, 99, 235, 0.45);
+    }
+
+    .bank-btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+    }
+
+    .bank-btn-outline {
+        border-radius: 999px;
+    }
+
+    /* History table */
+    .bank-table-card {
+        border-radius: 18px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+        background: #ffffff;
+    }
+
+    .bank-table-header {
+        padding: 12px 16px 10px;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .bank-table-title {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .bank-table-sub {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .table thead th {
+        background: #f3f4f6;
+        border-bottom-width: 1px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #6b7280;
+    }
+
+    .table tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    .bank-date-pill {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 2px 8px;
+        background: #e0f2fe;
+        font-size: 11px;
+        color: #0f172a;
+    }
+
+    .bank-deposit {
+        color: #15803d;
+        font-weight: 600;
+    }
+
+    .bank-withdraw {
+        color: #b91c1c;
+        font-weight: 600;
+    }
+
+    .bank-balance {
+        font-weight: 600;
+        color: #111827;
+    }
+</style>
+
+<div class="bank-wrapper">
+
+    <!-- Top summary row -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <div class="card bank-stat-card bank-stat-cash">
+                <div class="card-body">
+                    <div>
+                        <div class="bank-stat-label">Cash in hand (current)</div>
+                        <div class="bank-stat-value">
+                            {{ "%.2f"|format(cash_in_hand) }} <small>৳</small>
+                        </div>
+                        <div class="bank-stat-sub">
+                            Available physical cash after all records.
+                        </div>
+                    </div>
+                    <div class="bank-stat-icon">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card bank-stat-card bank-stat-bank">
+                <div class="card-body">
+                    <div>
+                        <div class="bank-stat-label">Balance in bank</div>
+                        <div class="bank-stat-value">
+                            {{ "%.2f"|format(bank_balance) }} <small>৳</small>
+                        </div>
+                        <div class="bank-stat-sub">
+                            Based on deposits and withdrawals recorded here.
+                        </div>
+                    </div>
+                    <div class="bank-stat-icon">
+                        <i class="bi bi-bank"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content row -->
+    <div class="row g-3">
+
+        <!-- Left side: new transaction + print statement -->
+        <div class="col-lg-5">
+            <!-- New Transaction -->
+            <div class="bank-card mb-3">
+                <div class="bank-form-header">
+                    <div>
+                        <div class="bank-form-title">New Transaction</div>
+                        <div class="bank-form-sub">
+                            Move money between cash and bank.
+                        </div>
+                    </div>
+                    <div class="bank-form-icon">
+                        <i class="bi bi-arrow-left-right"></i>
+                    </div>
+                </div>
+
+                <div class="bank-form-body">
+                    <form method="post" autocomplete="off">
+                        <div class="mb-3">
+                            <label class="bank-label">Type</label>
+                            <select name="tx_type" class="form-select bank-select" required>
+                                <option value="deposit">Deposit to Bank (from cash)</option>
+                                <option value="withdraw">Withdraw from Bank (to cash)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="bank-label">Date</label>
+                            <input type="date" name="date" class="form-control bank-input">
+                            <div class="bank-hint mt-1">
+                                Leave empty to use today's date.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="bank-label">Amount</label>
+                            <div class="input-group bank-input-group">
+                                <span class="input-group-text">৳</span>
+                                <input type="number" step="0.01" name="amount"
+                                       class="form-control bank-input" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-1">
+                            <label class="bank-label">Description (optional)</label>
+                            <input type="text" name="description" class="form-control bank-input"
+                                   placeholder="Deposit from cash, ATM withdraw, etc.">
+                        </div>
+
+                        <div class="bank-form-footer">
+                            <button class="bank-btn-primary" type="submit">
+                                Save Transaction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Print Statement -->
+            <div class="bank-card">
+                <div class="bank-form-header" style="background: linear-gradient(135deg,#0f172a,#1e293b);">
+                    <div>
+                        <div class="bank-form-title">Print Bank Statement</div>
+                        <div class="bank-form-sub">
+                            Open a printable PDF for a selected date range.
+                        </div>
+                    </div>
+                    <div class="bank-form-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+
+                <div class="bank-form-body">
+                    <form method="post"
+                          action="{{ url_for('bank_statement') }}"
+                          autocomplete="off"
+                          target="_blank">
+                        <div class="mb-3">
+                            <label class="bank-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control bank-input" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="bank-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control bank-input" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary bank-btn-outline w-100">
+                            Open Statement (Print / Save PDF)
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right side: transaction history -->
+        <div class="col-lg-7">
+            <div class="bank-table-card">
+                <div class="bank-table-header">
+                    <div>
+                        <div class="bank-table-title">Bank Transaction History</div>
+                        <div class="bank-table-sub">
+                            All deposits and withdrawals in order.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 align-middle">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th class="text-end">Deposit</th>
+                                <th class="text-end">Withdraw</th>
+                                <th class="text-end">Balance</th>
+                                <th>By</th>
+                                {% if g.user and g.user.role == 'admin' %}
+                                    <th class="text-end">Action</th>
+                                {% endif %}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% if entries %}
+                                {% for e in entries %}
+                                <tr>
+                                    <td>
+                                        <span class="bank-date-pill">
+                                            {{ e.date }}
+                                        </span>
+                                    </td>
+                                    <td>{{ e.description }}</td>
+                                    <td class="text-end bank-deposit">
+                                        {% if e.credit %}
+                                            {{ "%.2f"|format(e.credit) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end bank-withdraw">
+                                        {% if e.debit %}
+                                            {{ "%.2f"|format(e.debit) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end bank-balance">
+                                        {{ "%.2f"|format(e.balance_after or 0) }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 10px;">
+                                            {{ e.created_by.username if e.created_by else '—' }}
+                                        </span>
+                                    </td>
+                                    {% if g.user and g.user.role == 'admin' %}
+                                    <td class="text-end">
+                                        <form method="post"
+                                              action="{{ url_for('delete_bank_entry', entry_id=e.id) }}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Delete this bank transaction?');">
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-3">
+                                        No bank transactions yet.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block page_title %}Payment History — {{ staff.name }}{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted">
+    Designation: {{ staff.designation or "N/A" }}
+    &nbsp; | &nbsp;
+    Monthly salary: {{ "%.2f"|format(staff.salary or 0) }} ৳
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Partial Salary Payments</strong>
+        <span class="text-muted small">
+            Total paid so far: {{ "%.2f"|format(total_paid or 0) }} ৳
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th style="width: 4%;">#</th>
+                    <th style="width: 12%;">Date</th>
+                    <th style="width: 14%;" class="text-end">Amount</th>
+                    <th style="width: 8%;">Source</th>
+                    <th>Note</th>
+                    <th style="width: 8%;">By</th>
+                    <th style="width: 16%;" class="text-end">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if payments %}
+                    {% for p in payments %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ p.date.strftime("%Y-%m-%d") }}</td>
+
+                        <!-- Editable Amount -->
+                        <td class="text-end">
+                            <form method="post"
+                                  action="{{ url_for('update_staff_payment', payment_id=p.id) }}"
+                                  class="d-flex justify-content-end gap-2">
+                                <input type="number" step="0.01" name="amount"
+                                       class="form-control form-control-sm text-end"
+                                       value="{{ '%.2f'|format(p.amount or 0) }}"
+                                       style="max-width: 100px;">
+
+                                <!-- Source is shown but not editable here -->
+                                <input type="hidden" name="note"
+                                       value="{{ p.note or '' }}"
+                                       id="note-hidden-{{ p.id }}">
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-primary">
+                                    Save
+                                </button>
+                            </form>
+                        </td>
+
+                        <!-- Source -->
+                        <td>
+                            {% if p.source == 'bank' %}
+                                Bank
+                            {% else %}
+                                Cash
+                            {% endif %}
+                        </td>
+
+                        <!-- Editable Note (separate tiny form to avoid nested forms) -->
+                        <td>
+                            <form method="post"
+                                  action="{{ url_for('update_staff_payment', payment_id=p.id) }}"
+                                  class="d-flex gap-2">
+                                <input type="hidden" name="amount"
+                                       value="{{ '%.2f'|format(p.amount or 0) }}">
+                                <input type="text" name="note"
+                                       class="form-control form-control-sm"
+                                       value="{{ p.note or '' }}"
+                                       placeholder="Note">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-primary">
+                                    Save
+                                </button>
+                            </form>
+                        </td>
+
+                        <!-- Created By -->
+                        <td>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 10px;">
+                                {{ p.created_by.username if p.created_by else '—' }}
+                            </span>
+                        </td>
+
+                        <!-- Delete button -->
+                        <td class="text-end">
+                            <form method="post"
+                                  action="{{ url_for('delete_staff_payment', payment_id=p.id) }}"
+                                  onsubmit="return confirm('Delete this salary payment?');">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-3">
+                            No payments recorded yet.
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

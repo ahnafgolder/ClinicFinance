@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% endblock %}
+{% block page_subtitle %}{% endblock %}
+
+{% block content %}
+
+<style>
+    /* Make the login view full screen and escape base container width */
+    .login-page {
+        width: 100vw;
+        height: 100vh;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        /* background image + gradient overlay */
+        background-image:
+            linear-gradient(120deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35)),
+            url("{{ url_for('static', filename='img/hospital.png') }}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .login-shell {
+        width: 100%;
+        max-width: 1050px;
+        min-height: 420px;
+
+        display: flex;
+        border-radius: 24px;
+        overflow: hidden;
+
+        /* glass / soft card */
+        background: rgba(15, 23, 42, 0.40);
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: #f9fafb;
+    }
+
+    .login-left,
+    .login-right {
+        padding: 40px 44px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .login-left {
+        flex: 1.1;
+        justify-content: space-between;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .login-right {
+        flex: 0.9;
+        background: rgba(248, 250, 252, 0.96);
+        color: #111827;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-brand {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .login-brand-mark {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.35);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .login-headline {
+        margin-top: 36px;
+        margin-bottom: 12px;
+        font-weight: 700;
+        font-size: 30px;
+        line-height: 1.25;
+    }
+
+    .login-headline span {
+        color: #bbf7d0;
+    }
+
+    .login-text {
+        font-size: 14px;
+        color: #e5e7eb;
+        max-width: 380px;
+    }
+
+    .login-left-footer {
+        margin-top: 36px;
+        font-size: 11px;
+        color: #cbd5f5;
+    }
+
+    .login-form-wrap {
+        width: 100%;
+        max-width: 340px;
+    }
+
+    .login-form-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-align: left;
+    }
+
+    .login-form-sub {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+
+    .login-label {
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #111827;
+    }
+
+    .login-small {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 16px;
+        text-align: left;
+    }
+
+    .login-footer {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 10px;
+        text-align: left;
+    }
+
+    @media (max-width: 992px) {
+        .login-shell {
+            flex-direction: column;
+            max-width: 92%;
+        }
+        .login-left {
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .login-left,
+        .login-right {
+            padding: 28px 24px;
+        }
+        .login-headline {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .login-page {
+            padding: 16px 0;
+        }
+        .login-shell {
+            max-width: 94%;
+        }
+    }
+</style>
+
+<div class="login-page">
+
+    <div class="login-shell">
+
+        <!-- Left side: hospital/finance messaging -->
+        <div class="login-left">
+            <div>
+                <div class="login-brand">
+                    <div class="login-brand-mark">₮</div>
+                    <span>Asia Doctor's Point Finance</span>
+                </div>
+
+                <div class="login-headline">
+                    Modern finance control<br>
+                    for your <span>diagnostic center</span>.
+                </div>
+
+                <p class="login-text">
+                    Track daily collections, lab income, expenses, staff salary,
+                    suppliers and bank balance inside one secure, offline system.
+                </p>
+            </div>
+
+            <div class="login-left-footer">
+                24/7 access &nbsp;•&nbsp; Local data storage &nbsp;•&nbsp; Printable PDF reports
+            </div>
+        </div>
+
+        <!-- Right side: login form -->
+        <div class="login-right">
+            <div class="login-form-wrap">
+
+                <div class="login-form-title">Sign in</div>
+                <div class="login-form-sub">
+                    Use your clinic finance credentials.
+                </div>
+
+                <form method="post" autocomplete="off">
+                    <div class="mb-3">
+                        <label class="login-label">Username</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="username"
+                            required
+                            autofocus
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="login-label">Password</label>
+                        <input
+                            type="password"
+                            class="form-control"
+                            name="password"
+                            required
+                        >
+                    </div>
+
+                    <button class="btn btn-primary w-100 mt-1" type="submit">
+                        Sign in
+                    </button>
+                </form>
+
+                <div class="login-small">
+                    This system contains confidential financial information.
+                    Unauthorized access is prohibited.
+                </div>
+                <div class="login-footer">
+                    Developed by Ahnaf Golder &mdash; {{ now().year if now is defined else '2025' }}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
