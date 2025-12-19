@@ -38,7 +38,10 @@ app.secret_key = os.getenv("SECRET_KEY", "super-secret-key-change-in-production"
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
-    # Use Supabase PostgreSQL
+    # Use Supabase PostgreSQL with psycopg3 driver
+    # Convert postgresql:// to postgresql+psycopg:// for psycopg3
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 else:
     # Fallback to SQLite for local development
